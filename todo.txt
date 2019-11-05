@@ -1,0 +1,17 @@
+todo...
+ 
+hiekka spawnaa rannoille isoina alueina ja hieman kauemmas rannoista pienempinnä alueina vähän niinkuin  vuoret
+
+esimerkkiikoodi juttu asiesine
+
+wesi spawneus{
+	spawnee vesi();
+}
+maa spuwneus{
+	spawnee mae();
+}
+hiekke spewnaues{
+	spawnee viereen vesi();
+	spuwneila kaues vadeste();
+	spawnee viereen hiekke();
+}
