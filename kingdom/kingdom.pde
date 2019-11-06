@@ -25,24 +25,22 @@ float zoom = 1.0;
 Unit active_unit = null;
 LinkedList<Unit> units = new LinkedList<Unit>();
 
+
 void setup() {
   //size(800, 600, P2D);
   fullScreen(P2D);
   init_world();
-  //init_map_layer();
   Unit unit = new Unit();
   unit.find_reachable_paths();
-  Iterator<Tile> itr = unit.reachable.keySet().iterator();
-  while (itr.hasNext()) {
-    itr.next().highlight = true;
-  }
-  init_map_layer();
 }
 
 void draw() {
   background(200);
   handle_wasd();
+
+  // Things drawn before this are draw in screen coordinates
   set_world_coordinates();
+  // Things drawn after this are draw in the world coordinates
 
   draw_map();
   draw_units();
@@ -97,40 +95,25 @@ void set_world_coordinates() {
   translate(x_offset, y_offset);
 }
 
-Tile pointed_tile() {
-  int x, y;
-  float x_point = (mouseX - width/2)/zoom + width/2 - x_offset;
-  if (x_point < 0 || x_point > WORLD_WIDTH*TILE_SIZE) {
-    return null;
-  }
-  else {
-    x = int(x_point)/TILE_SIZE;
-  }
-  float y_point = (mouseY - height/2)/zoom + height/2 - y_offset;
-  if (y_point < 0 || y_point > WORLD_HEIGHT*TILE_SIZE) {
-    return null;
-  }
-  else {
-    y = int(y_point)/TILE_SIZE;
-  }
-  return world_grid[x][y];
-}
-
 void mousePressed() {
   Tile tile = pointed_tile();
-  if (tile != null) {
-    if (tile.unit != null) {
-      //println("Active set");
-      active_unit = tile.unit;
-    }
-    else {
-      //println("Active cleared");
-      active_unit = null;
+
+  if (mouseButton == LEFT) {
+    if (tile != null) {
+      if (tile.unit != null) {
+        active_unit = tile.unit;
+      }
+      else {
+        active_unit = null;
+      }
     }
   }
-  else {
-    println("Out");
+  else if (mouseButton == RIGHT) {
+    if (active_unit != null) {
+      active_unit.move_to(tile);
+    }
   }
+
 
 }
 
