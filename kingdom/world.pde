@@ -110,6 +110,21 @@ public abstract class Tile {
     layer.rect(x*TILE_SIZE, y*TILE_SIZE, TILE_SIZE, TILE_SIZE);
   }
 
+  float center_x() {
+    return (x + 0.5)*TILE_SIZE;
+  }
+
+  float center_y() {
+    return (y + 0.5)*TILE_SIZE;
+  }
+
+  boolean can_cross(Unit unit) {
+    if (this.unit != null) {
+      return false;
+    }
+    return this.units_can_cross;
+  }
+
 }
 
 public class LandTile extends Tile {
@@ -158,7 +173,7 @@ public class MountainTile extends Tile {
 public class Building {
 
   public Building () {
-
+    // TODO: buildings
   }
 
 }
@@ -210,20 +225,22 @@ public static int[] y_directions = {-1, 0, 1,  0, -1, 1,  1, -1};
 
 public class Unit {
 
-  float x = 10;
-  float y = 10;
+  float x, y;
   Tile tile;
 
   float initial_movement_points = 50;
   float movement_points = initial_movement_points;
-  HashMap<Tile,Path> reachable = new HashMap<Tile,Path>();
+  HashMap<Tile,Path> reachable = null;
 
-  float speed = 0.1;
+  float speed = 0.1*TILE_SIZE;
+  Path active_path = null;
 
-  public Unit () {
+  public Unit (Tile tile) {
     units.add(this);
-    this.tile = world_grid[int(x)][int(y)];
+    this.tile = tile;
     this.tile.unit = this;
+    this.x = this.tile.center_x();
+    this.y = this.tile.center_y();
   }
 
   void draw() {
@@ -235,7 +252,7 @@ public class Unit {
     else {
       fill(255);
     }
-    ellipse((x+0.5)*TILE_SIZE, (y+0.5)*TILE_SIZE, 2*TILE_SIZE/3, 2*TILE_SIZE/3);
+    ellipse(x, y, 2*TILE_SIZE/3, 2*TILE_SIZE/3);
     move();
   }
 
@@ -249,14 +266,47 @@ public class Unit {
   Path path_to_pointed_tile() {
     Path path = null;
     Tile tile = pointed_tile();
-    if (tile != null && this.reachable.containsKey(tile)) {
+    if (tile != null && this.reachable != null && this.reachable.containsKey(tile)) {
       path = this.reachable.get(tile);
     }
     return path;
   }
 
   void move() {
-    // TODO: moving iteration
+    if (active_path != null) {
+
+      Tile target = active_path.path.get(0);
+      this.tile.unit = null;
+      float x_diff = 0;
+      float y_diff = 0;
+      if (abs(this.x - target.center_x()) >= this.speed) {
+        if (this.x < target.center_x()) x_diff = speed;
+        else if (this.x > target.center_x()) x_diff = -speed;
+      }
+      if (abs(this.y - target.center_y()) >= this.speed) {
+        if (this.y < target.center_y()) y_diff = speed;
+        else if (this.y > target.center_y()) y_diff = -speed;
+      }
+      if (x_diff != 0 && y_diff != 0) {
+        x_diff = x_diff*SIN_QUARTER_PI;
+        y_diff = y_diff*SIN_QUARTER_PI;
+      }
+      this.x += x_diff;
+      this.y += y_diff;
+
+      if (x_diff == 0 && y_diff == 0) {
+        // Arrived
+        this.x = target.center_x();
+        this.y = target.center_y();
+        active_path.path.pop();
+        if (active_path.path.size() == 0) {
+          active_path = null;
+          target.unit = this;
+          this.tile = target;
+        }
+      }
+    }
+
   }
 
   void find_reachable_paths() {
@@ -276,7 +326,7 @@ public class Unit {
         if (are_coordinates_inside(next_x, next_y)) {
           tile = world_grid[next_x][next_y];
           float movement_cost = this.movement_cost(current.tile, tile, i >= 4);
-          if (tile.units_can_cross && (movement_points - current.movement_cost - movement_cost >= 0)) {
+          if (tile.can_cross(this) && (movement_points - current.movement_cost - movement_cost >= 0)) {
             Path new_path = new Path(tile, movement_cost, current);
             if (reachable.containsKey(tile)) {
               Path old_path = reachable.get(tile);
@@ -301,7 +351,7 @@ public class Unit {
 
   float movement_cost(Tile tile1, Tile tile2, boolean diagonal) {
     if (diagonal) {
-      return (tile1.movement_cost/2 + tile2.movement_cost/2)*1.414;
+      return (tile1.movement_cost/2 + tile2.movement_cost/2)*SQRT_2;
     }
     return tile1.movement_cost/2 + tile2.movement_cost/2;
   }
@@ -314,14 +364,21 @@ public class Unit {
   }
 
   void move_to(Tile tile) {
-    if (this.reachable.containsKey(tile)) {
-      // TODO: move
+    if (this.reachable != null && this.reachable.containsKey(tile)) {
+      active_path = this.reachable.get(tile);
+      reachable = null;
+      active_unit = null;
     }
     else {
       println("Can't go there!");
     }
   }
 
+}
+
+void select_unit(Unit unit) {
+  active_unit = unit;
+  update_reachable_layer(unit);
 }
 
 void update_reachable_layer(Unit unit) {

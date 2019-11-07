@@ -11,9 +11,9 @@ public static final float MAX_ZOOM = 3;
 public static final float MIN_ZOOM = 0.3;
 
 
-public static final int WORLD_WIDTH = 300;
-public static final int WORLD_HEIGHT = 300;
-public static final int TILE_SIZE = 10;
+public static final int WORLD_WIDTH = 200;
+public static final int WORLD_HEIGHT = 200;
+public static final int TILE_SIZE = 20;
 
 
 
@@ -27,11 +27,11 @@ LinkedList<Unit> units = new LinkedList<Unit>();
 
 
 void setup() {
-  //size(800, 600, P2D);
-  fullScreen(P2D);
+  size(800, 600, P2D);
+  //fullScreen(P2D);
   init_world();
-  Unit unit = new Unit();
-  unit.find_reachable_paths();
+  new Unit(world_grid[10][10]);
+  new Unit(world_grid[15][15]);
 }
 
 void draw() {
@@ -101,7 +101,7 @@ void mousePressed() {
   if (mouseButton == LEFT) {
     if (tile != null) {
       if (tile.unit != null) {
-        active_unit = tile.unit;
+        select_unit(tile.unit);
       }
       else {
         active_unit = null;
