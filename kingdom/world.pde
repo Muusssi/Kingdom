@@ -1,4 +1,4 @@
-public static final int SEA_BUFFER = 3; // Must be at least 2
+public static final int SEA_BUFFER = 5; // Must be at least 2
 public static final float BASE_LINE_WATER = 0.01;
 public static final float BASE_LINE_MOUNTAIN = 0.01;
 public static final float NEIGHBOUR_EFFECT = 0.35;
@@ -41,6 +41,7 @@ void init_world() {
     }
   }
   init_map_layer();
+  create_resources();
 }
 
 void init_map_layer() {
@@ -170,15 +171,6 @@ public class MountainTile extends Tile {
 
 
 
-public class Building {
-
-  public Building () {
-    // TODO: buildings
-  }
-
-}
-
-
 void draw_units() {
   for (int i = 0; i < units.size(); ++i) {
     Unit unit = units.get(i);
@@ -227,16 +219,19 @@ public class Unit {
 
   float x, y;
   Tile tile;
+  Faction faction;
 
-  float initial_movement_points = 50;
+  float initial_movement_points = 20;
   float movement_points = initial_movement_points;
   HashMap<Tile,Path> reachable = null;
 
-  float speed = 0.1*TILE_SIZE;
+  float speed = 0.2*TILE_SIZE;
   Path active_path = null;
 
-  public Unit (Tile tile) {
+  public Unit (Tile tile, Faction faction) {
     units.add(this);
+    this.faction = faction;
+    this.faction.units.add(this);
     this.tile = tile;
     this.tile.unit = this;
     this.x = this.tile.center_x();
@@ -254,6 +249,10 @@ public class Unit {
     }
     ellipse(x, y, 2*TILE_SIZE/3, 2*TILE_SIZE/3);
     move();
+  }
+
+  void focus_camera() {
+    focus_camera_on(this.x, this.y);
   }
 
   void draw_path_to_pointed_tile() {
@@ -300,6 +299,7 @@ public class Unit {
         this.y = target.center_y();
         active_path.path.pop();
         if (active_path.path.size() == 0) {
+          this.movement_points -= active_path.movement_cost;
           active_path = null;
           target.unit = this;
           this.tile = target;

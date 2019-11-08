@@ -24,27 +24,33 @@ float zoom = 1.0;
 
 Unit active_unit = null;
 LinkedList<Unit> units = new LinkedList<Unit>();
+Button end_turn_button;
 
+Faction player_faction;
 
 void setup() {
-  size(800, 600, P2D);
-  //fullScreen(P2D);
+  //size(800, 600, P2D);
+  fullScreen(P2D);
   init_world();
-  new Unit(world_grid[10][10]);
-  new Unit(world_grid[15][15]);
+  player_faction = new PlayerFaction();
+  end_turn_button = new TurnButton();
+  new Unit(world_grid[10][10], player_faction);
+  new Unit(world_grid[15][15], player_faction);
 }
 
 void draw() {
   background(200);
   handle_wasd();
 
-  // Things drawn before this are draw in screen coordinates
   set_world_coordinates();
   // Things drawn after this are draw in the world coordinates
-
   draw_map();
   draw_units();
 
+  set_window_coordinates();
+  // Things drawn after this are draw in the window coordinates
+  player_faction.draw_resources();
+  draw_buttons();
 }
 
 
@@ -95,8 +101,21 @@ void set_world_coordinates() {
   translate(x_offset, y_offset);
 }
 
+void set_window_coordinates() {
+  translate(-x_offset, -y_offset);
+  translate(width/2, height/2);
+  scale(1/zoom, 1/zoom);
+  translate(-width/2, -height/2);
+}
+
+void focus_camera_on(float x, float y) {
+  // TODO focus_camera_on
+}
+
 void mousePressed() {
   Tile tile = pointed_tile();
+
+  check_buttons();
 
   if (mouseButton == LEFT) {
     if (tile != null) {
