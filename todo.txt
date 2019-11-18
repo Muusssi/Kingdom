@@ -15,3 +15,5 @@ hiekke spewnaues{
 	spuwneila kaues vadeste();
 	spawnee viereen hiekke();
 }
+
+Pelin tavoite on rakentaa kuningaskuta ja tuhota bravaarit yksiköillä kuten jousiampujat ja miekkaheilujat
